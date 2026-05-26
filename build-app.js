@@ -871,7 +871,74 @@ for (const [name, s] of Object.entries(spells)) {
 }
 
 // ============================================================
-// 6. CLASS INFO (hardcoded from SRD)
+// 6.5. ITALIAN DESCRIPTIONS
+// ============================================================
+let DESC_IT = {};
+let DESC_HL_IT = {};
+try {
+  const itJSON = JSON.parse(fs.readFileSync('spells_it.json', 'utf8'));
+
+  // Build Italian index by signature
+  const itByName = {};
+  const itBySig = {};
+  const schoolMap = { Abiurazione:'Abjuration', Evocazione:'Conjuration', Divinazione:'Divination', Ammaliamento:'Enchantment', Invocazione:'Evocation', Illusione:'Illusion', Necromanzia:'Necromancy', Trasmutazione:'Transmutation' };
+  const classMap = { bardo:'Bard', chierico:'Cleric', druido:'Druid', paladino:'Paladin', ranger:'Ranger', stregone:'Sorcerer', warlock:'Warlock', mago:'Wizard' };
+
+  for (const s of itJSON) {
+    const norm = s.name.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+    itByName[norm] = s;
+    const school = schoolMap[s.school] || s.school;
+    const classes = (s.classes||[]).map(c => classMap[c.toLowerCase()] || c).sort();
+    const sig = s.level + '|' + school + '|' + classes.join(',');
+    if (!itBySig[sig]) itBySig[sig] = s;
+  }
+
+  for (const [enName, itName] of Object.entries(I18N.spellNames)) {
+    const norm = itName.toLowerCase().replace(/[^a-z0-9 ]/g, '');
+    let spell = itByName[norm];
+
+    if (!spell) {
+      // Try by (level, school, classes) signature
+      const s = spells[enName];
+      if (s) {
+        const sig = s.l + '|' + (SCHOOL_FULL[s.sc] || s.sc) + '|' + (s.cl||[]).sort().join(',');
+        spell = itBySig[sig];
+      }
+    }
+
+    if (!spell) continue;
+
+    // Italian description
+    let desc = '';
+    if (spell.description && Array.isArray(spell.description)) {
+      desc = spell.description.map(d => d.text || '').join('');
+    }
+    desc = desc.replace(/Systems Reference Document 5\.1 \d+/g, '').trim();
+    desc = desc.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+               .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+               .replace(/\n/g, '<br>').trim();
+    if (desc) DESC_IT[enName] = desc;
+
+    // Italian higher level
+    let hl = '';
+    if (spell.at_higher_levels && Array.isArray(spell.at_higher_levels)) {
+      hl = spell.at_higher_levels.map(d => d.text || '').join('');
+    }
+    hl = hl.replace(/Systems Reference Document 5\.1 \d+/g, '').trim();
+    if (hl) {
+      hl = hl.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+              .replace(/\n/g, '<br>').trim();
+      DESC_HL_IT[enName] = hl;
+    }
+  }
+  console.log(`Italian descriptions: ${Object.keys(DESC_IT).length} spells`);
+} catch (e) {
+  console.log('No Italian descriptions loaded:', e.message);
+}
+
+// ============================================================
+// 7. CLASS INFO (hardcoded from SRD)
 // ============================================================
 const classInfo = {
   Barbarian: { hitDie: 12, saves: ['forza', 'costituzione'], spellAbility: '', armorProfs: 'armature leggere, medie, scudi', weaponProfs: 'armi semplici, marziali' },
@@ -1201,6 +1268,8 @@ const I18N_DATA = ${JSON.stringify(I18N)};
 // ===================== SPELL DATA =====================
 const SPELLS = ${JSON.stringify(spellsMin)};
 const CLASS_SPELLS = ${JSON.stringify(classSpellLists)};
+const DESC_IT = ${JSON.stringify(DESC_IT)};
+const DESC_HL_IT = ${JSON.stringify(DESC_HL_IT)};
 const CLASS_INFO = ${JSON.stringify(classInfo)};
 const RACE_INFO = ${JSON.stringify(raceInfo)};
 
@@ -1240,6 +1309,16 @@ function t(en, it) {
 function spellName(name) {
   if (currentLang === 'it' && SPELL_NAMES_IT[name]) return SPELL_NAMES_IT[name];
   return name;
+}
+
+function spellDescription(name) {
+  if (currentLang === 'it' && DESC_IT[name]) return DESC_IT[name];
+  return SPELLS[name] ? SPELLS[name].desc : '';
+}
+
+function spellHigherLevel(name) {
+  if (currentLang === 'it' && DESC_HL_IT[name]) return DESC_HL_IT[name];
+  return SPELLS[name] ? SPELLS[name].hl : '';
 }
 
 function schoolName(code) {
@@ -1672,7 +1751,8 @@ function renderUI() {
           if (!enName.includes(query) && !itName.includes(query)) continue;
         } else {
           const enDesc = (s.desc || '').toLowerCase().replace(/<[^>]+>/g, '');
-          if (!enDesc.includes(query)) continue;
+          const itDesc = (DESC_IT[n] || '').toLowerCase().replace(/<[^>]+>/g, '');
+          if (!enDesc.includes(query) && !itDesc.includes(query)) continue;
         }
       }
       if (cls && (!s.cl || !s.cl.includes(cls))) continue;
@@ -1775,8 +1855,8 @@ function renderUI() {
       (s.dt ? '<div class="meta-item"><div class="ml">' + t('Damage Type','Tipo Danno') + '</div><div class="mv">' + damageName(s.dt) + '</div></div>' : '') +
       ((s.cl||[]).length ? '<div class="meta-item"><div class="ml">' + t('Classes','Classi') + '</div><div class="mv">' + s.cl.map(c=>className(c)).join(', ') + '</div></div>' : '') +
       '</div>' +
-      '<div class="desc">' + s.desc + '</div>' +
-      (s.hl ? '<div class="hl"><strong>' + t('At Higher Levels','A livelli superiori') + ':</strong> ' + s.hl + '</div>' : '');
+      '<div class="desc">' + spellDescription(name) + '</div>' +
+      (s.hl || DESC_HL_IT[name] ? '<div class="hl"><strong>' + t('At Higher Levels','A livelli superiori') + ':</strong> ' + spellHigherLevel(name) + '</div>' : '');
     document.getElementById('spellDetail').classList.add('active');
   }
 
