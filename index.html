@@ -99,15 +99,32 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 
 .spell-count { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
 .spell-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.spell-table th { text-align: left; padding: 8px 10px; background: var(--bg3); color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; position: sticky; top: 48px; z-index: 10; }
+.spell-table th { text-align: left; padding: 10px 12px; background: var(--bg3); color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; position: sticky; top: 48px; z-index: 10; }
 .spell-table th:hover { background: #134580; }
-.spell-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.spell-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .spell-table th::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent); pointer-events: none; }
-.spell-table tr:hover { background: rgba(255,255,255,0.03); }
-.spell-table .tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-right: 2px; white-space: nowrap; }
+.spell-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+.spell-table tbody tr:hover { background: rgba(255,255,255,0.06); }
+.spell-table .tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; margin-right: 3px; white-space: nowrap; letter-spacing: 0.3px; }
+.spell-table .tag-sm { padding: 1px 5px; border-radius: 8px; font-size: 9px; font-weight: 700; }
 .tag-conc { background: #e94560; color: white; }
 .tag-ritual { background: #4ecca3; color: #1a1a2e; }
-.tag-school { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; color: white; }
+.tag-school { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; color: white; letter-spacing: 0.3px; }
+.tag-comp { display: inline-block; padding: 1px 5px; border-radius: 4px; font-size: 9px; font-weight: 700; margin-right: 2px; color: white; }
+.tag-comp-v { background: #3498db; }
+.tag-comp-s { background: #e67e22; }
+.tag-comp-m { background: #9b59b6; }
+.tag-level { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 11px; font-weight: 700; min-width: 28px; text-align: center; }
+.tag-level-0 { background: #7f8c8d; color: white; }
+.tag-level-1 { background: #2ecc71; color: #1a1a2e; }
+.tag-level-2 { background: #27ae60; color: white; }
+.tag-level-3 { background: #3498db; color: white; }
+.tag-level-4 { background: #8e44ad; color: white; }
+.tag-level-5 { background: #e67e22; color: white; }
+.tag-level-6 { background: #e74c3c; color: white; }
+.tag-level-7 { background: #c0392b; color: white; }
+.tag-level-8 { background: #9b59b6; color: white; }
+.tag-level-9 { background: #e94560; color: white; }
 
 .spell-detail-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; display: none; justify-content: center; align-items: center; }
 .spell-detail-overlay.active { display: flex; }
@@ -792,13 +809,20 @@ function renderUI() {
   }
 
   function renderSpellTable(results) {
-    const compStr = (s) => [s.c[0]?'V':'', s.c[1]?'S':'', s.c[2]?'M':''].filter(Boolean).join(',');
+    const compSort = (s) => [s.c[0]?'V':'', s.c[1]?'S':'', s.c[2]?'M':''].filter(Boolean).join(',');
+    const compBadge = (s) => {
+      const parts = [];
+      if (s.c[0]) parts.push('<span class="tag-comp tag-comp-v">V</span>');
+      if (s.c[1]) parts.push('<span class="tag-comp tag-comp-s">S</span>');
+      if (s.c[2]) parts.push('<span class="tag-comp tag-comp-m">M</span>');
+      return parts.join('');
+    };
 
     results.sort((a,b) => {
       let va = a[spellSortField], vb = b[spellSortField];
       if (spellSortField === 'level' || spellSortField === 'l') { va = a.l; vb = b.l; }
       if (spellSortField === 'name') { va = spellName(a.name).toLowerCase(); vb = spellName(b.name).toLowerCase(); }
-      if (spellSortField === 'components') { va = compStr(a); vb = compStr(b); }
+      if (spellSortField === 'components') { va = compSort(a); vb = compSort(b); }
       if (spellSortField === 'school') { va = schoolName(a.sc); vb = schoolName(b.sc); }
       if (spellSortField === 'classes') { va = (a.cl||[]).map(c=>className(c)).join(','); vb = (b.cl||[]).map(c=>className(c)).join(','); }
       if (typeof va === 'string') return spellSortDir * va.localeCompare(vb);
@@ -807,7 +831,7 @@ function renderUI() {
 
     const tbody = document.getElementById('spellTableBody');
     tbody.innerHTML = results.map(s => {
-      const lvlStr = s.l === 0 ? t('Cantrip','Cantrip') : s.l + '°';
+      const lvlBadge = '<span class="tag-level tag-level-'+s.l+'">' + (s.l === 0 ? t('Cantrip','Cantrip') : s.l) + '</span>';
       const schoolFull = schoolName(s.sc);
       const schoolColor = SCHOOL_COLORS[s.sc] || '#666';
       const tags = [];
@@ -816,16 +840,16 @@ function renderUI() {
       tags.push('<span class="tag-school" style="background:'+schoolColor+'">' + schoolFull + '</span>');
       const classStr = (s.cl || []).map(c => className(c)).join(', ');
       const displayName = spellName(s.name);
-      return '<tr data-spell="' + s.name.replace(/"/g, '&quot;') + '" onclick="showSpellDetail(this.dataset.spell)" style="cursor:pointer">' +
-        '<td>' + displayName + '</td>' +
-        '<td>' + lvlStr + '</td>' +
+      return '<tr data-spell="' + s.name.replace(/"/g, '&quot;') + '" onclick="showSpellDetail(this.dataset.spell)" style="cursor:pointer;border-left:3px solid ' + schoolColor + '">' +
+        '<td style="font-weight:600">' + displayName + '</td>' +
+        '<td>' + lvlBadge + '</td>' +
         '<td><span class="tag-school" style="background:'+schoolColor+'">' + schoolFull + '</span></td>' +
-        '<td>' + s.ct + '</td>' +
-        '<td>' + s.r + '</td>' +
-        '<td>' + compStr(s) + '</td>' +
-        '<td>' + s.d + '</td>' +
+        '<td style="font-size:12px;color:var(--text2)">' + s.ct + '</td>' +
+        '<td style="font-size:12px;color:var(--text2)">' + s.r + '</td>' +
+        '<td>' + compBadge(s) + '</td>' +
+        '<td style="font-size:12px;color:var(--text2)">' + s.d + '</td>' +
         '<td>' + tags.join(' ') + '</td>' +
-        '<td>' + classStr + '</td>' +
+        '<td style="font-size:12px;color:var(--text2)">' + classStr + '</td>' +
         '</tr>';
     }).join('');
   }
