@@ -102,6 +102,7 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .spell-table th { text-align: left; padding: 8px 10px; background: var(--bg3); color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; position: sticky; top: 48px; z-index: 10; }
 .spell-table th:hover { background: #134580; }
 .spell-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.spell-table th::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent); pointer-events: none; }
 .spell-table tr:hover { background: rgba(255,255,255,0.03); }
 .spell-table .tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-right: 2px; white-space: nowrap; }
 .tag-conc { background: #e94560; color: white; }
@@ -309,7 +310,7 @@ const CLASS_IT = {"Bard":"Bardo","Cleric":"Chierico","Druid":"Druido","Paladin":
 const CLASS_EN = {"Bard":"Bard","Cleric":"Cleric","Druid":"Druid","Paladin":"Paladin","Ranger":"Ranger","Sorcerer":"Sorcerer","Warlock":"Warlock","Wizard":"Wizard"};
 const DMG_IT = {"Acid":"Acido","Blud":"Contundente","Cold":"Freddo","Fire":"Fuoco","Forc":"Forza","Ligh":"Fulmine","Neco":"Necrotico","Pier":"Perforante","Pois":"Veleno","Psyc":"Psichico","Radi":"Radioso","Slas":"Tagliente","":""};
 const SV_IT = {"S":"Forza","T":"Destrezza","C":"Costituzione","D":"Destrezza","I":"Intelligenza","W":"Saggezza","H":"Carisma"};
-const SV_EN = {"S":"Forza(D)","T":"Destrezza(D)","C":"Costituzione(C)","D":"Destrezza(D)","I":"Intelligenza(I)","W":"Saggezza(S)","H":"Carisma(C)"};
+const SV_EN = {"S":"Strength","T":"Dexterity","C":"Constitution","D":"Dexterity","I":"Intelligence","W":"Wisdom","H":"Charisma"};
 const SKILLS_IT = [{"name":"Acrobazia","ab":1},{"name":"Addestrare Animali","ab":4},{"name":"Arcano","ab":3},{"name":"Atletica","ab":0},{"name":"Fare Spettacoli","ab":5},{"name":"Furtività","ab":1},{"name":"Indagare","ab":3},{"name":"Inganno","ab":5},{"name":"Intimidire","ab":5},{"name":"Intuizione","ab":4},{"name":"Investigare","ab":3},{"name":"Medicina","ab":4},{"name":"Natura","ab":3},{"name":"Percezione","ab":4},{"name":"Persuasione","ab":5},{"name":"Religione","ab":3},{"name":"Rapidità di Mano","ab":1},{"name":"Sopravvivenza","ab":4},{"name":"Storia","ab":3}];
 const SKILLS_EN = [{"name":"Acrobatics","ab":1},{"name":"Animal Handling","ab":4},{"name":"Arcana","ab":3},{"name":"Athletics","ab":0},{"name":"Performance","ab":5},{"name":"Stealth","ab":1},{"name":"Investigate","ab":3},{"name":"Deception","ab":5},{"name":"Intimidation","ab":5},{"name":"Insight","ab":4},{"name":"Investigation","ab":3},{"name":"Medicine","ab":4},{"name":"Nature","ab":3},{"name":"Perception","ab":4},{"name":"Persuasion","ab":5},{"name":"Religion","ab":3},{"name":"Sleight of Hand","ab":1},{"name":"Survival","ab":4},{"name":"History","ab":3}];
 const ABBRS_IT = ["FOR","DES","COS","INT","SAG","CAR"];
@@ -404,9 +405,10 @@ function renderUI() {
   }
 
   // ===================== ABILITY CONSTANTS =====================
-  const ABILITIES = abilArr();
-  const ABBRS = abbrArr();
-  const SKILLS = skillsArr();
+  // Always English for stable element IDs; display text uses data-en/data-it
+  const ABILITIES = ABILITIES_EN;
+  const ABBRS = ABBRS_EN;
+  const SKILLS = SKILLS_EN;
 
   // ===================== STATE =====================
   let charState = loadState();
@@ -462,7 +464,7 @@ function renderUI() {
     ABBRS.forEach((a,i) => {
       const d = document.createElement('div');
       d.className = 'ability-card';
-      d.innerHTML = '<div class="label">'+a+'</div><div class="score"><input type="number" id="abi_'+a+'" value="10" min="1" max="30" oninput="onAbiChange(); autoSave()"></div><div class="mod" id="mod_'+a+'">+0</div>';
+      d.innerHTML = '<div class="label"><span data-en="'+ABBRS_EN[i]+'" data-it="'+ABBRS_IT[i]+'">'+ABBRS_IT[i]+'</span></div><div class="score"><input type="number" id="abi_'+a+'" value="10" min="1" max="30" oninput="onAbiChange(); autoSave()"></div><div class="mod" id="mod_'+a+'">+0</div>';
       abiDiv.appendChild(d);
     });
 
@@ -470,7 +472,7 @@ function renderUI() {
     ABBRS.forEach((a,i) => {
       const d = document.createElement('div');
       d.className = 'save-row';
-      d.innerHTML = '<input type="checkbox" id="save_'+i+'" onchange="onAbiChange(); autoSave()"><span class="save-name">'+ABBRS[i]+'</span> <span style="font-size:11px;color:var(--text2)">('+ABILITIES[i]+')</span><span class="save-total" id="saveTotal_'+i+'">+0</span>';
+      d.innerHTML = '<input type="checkbox" id="save_'+i+'" onchange="onAbiChange(); autoSave()"><span class="save-name"><span data-en="'+ABBRS_EN[i]+'" data-it="'+ABBRS_IT[i]+'">'+ABBRS_IT[i]+'</span></span> <span style="font-size:11px;color:var(--text2)" data-en="('+ABILITIES_EN[i]+')" data-it="('+ABILITIES_IT[i]+')">('+ABILITIES_IT[i]+')</span><span class="save-total" id="saveTotal_'+i+'">+0</span>';
       savesDiv.appendChild(d);
     });
 
@@ -478,7 +480,9 @@ function renderUI() {
     SKILLS.forEach((sk,i) => {
       const d = document.createElement('div');
       d.className = 'skill-row';
-      d.innerHTML = '<input type="checkbox" id="skill_cb_'+i+'" onchange="toggleExpertise('+i+'); onAbiChange(); autoSave()"><span class="skill-name">'+sk.name+' <span style="font-size:10px;color:var(--text2)">('+ABBRS[sk.ab]+')</span></span><span class="skill-total" id="skillTotal_'+i+'">+0</span>';
+      const skEN = SKILLS_EN[i];
+      const skIT = SKILLS_IT[i];
+      d.innerHTML = '<input type="checkbox" id="skill_cb_'+i+'" onchange="toggleExpertise('+i+'); onAbiChange(); autoSave()"><span class="skill-name"><span data-en="'+skEN.name+'" data-it="'+skIT.name+'">'+skIT.name+'</span> <span style="font-size:10px;color:var(--text2)" data-en="('+ABBRS_EN[skEN.ab]+')" data-it="('+ABBRS_IT[skIT.ab]+')">('+ABBRS_IT[skIT.ab]+')</span></span><span class="skill-total" id="skillTotal_'+i+'">+0</span>';
       d.onclick = function(e) { if(e.target.tagName!=='INPUT') { const cb=document.getElementById('skill_cb_'+i); cb.checked=!cb.checked; toggleExpertise(i); onAbiChange(); autoSave(); } };
       skillsDiv.appendChild(d);
     });
@@ -583,7 +587,7 @@ function renderUI() {
     const info = CLASS_INFO[cls];
     if (!info) return;
     document.getElementById('hitDice').value = lvl + 'd' + info.hitDie;
-    const conScore = int('abi_COS');
+    const conScore = int('abi_'+ABBRS[2]);
     const conMod = mod(conScore);
     const hp = info.hitDie + conMod + (lvl-1) * (Math.floor(info.hitDie/2) + 1 + conMod);
     if (hp > 0 && (!document.getElementById('hpMax').value || parseInt(document.getElementById('hpMax').value) === 0)) {
