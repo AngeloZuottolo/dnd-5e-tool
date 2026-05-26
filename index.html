@@ -99,8 +99,9 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 
 .spell-count { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
 .spell-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.spell-table th { text-align: left; padding: 10px 12px; background: var(--bg3); color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; position: sticky; top: 48px; z-index: 10; }
+.spell-table th { text-align: left; padding: 10px 12px; background: var(--bg3); color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; position: relative; }
 .spell-table th:hover { background: #134580; }
+.spell-table thead { position: sticky; top: 48px; z-index: 10; }
 .spell-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .spell-table th::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--accent); pointer-events: none; }
 .spell-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
@@ -283,24 +284,22 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
         <button class="btn btn-primary" onclick="resetFilters()" data-en="Reset Filters" data-it="Reset Filtri">Reset Filtri</button>
       </div>
     </div>
-    <div class="card" style="margin-top:12px">
+    <div class="card" style="margin-top:12px;overflow-x:auto">
       <div class="spell-count" id="spellCount"></div>
-      <div style="overflow-x:auto">
-        <table class="spell-table">
-          <thead><tr>
-            <th onclick="sortSpells('name')" data-en="Name" data-it="Nome">Nome</th>
-            <th onclick="sortSpells('level')" data-en="Lvl" data-it="Liv">Liv</th>
-            <th onclick="sortSpells('school')" data-en="School" data-it="Scuola">Scuola</th>
-            <th onclick="sortSpells('castingTime')" data-en="Time" data-it="Tempo">Tempo</th>
-            <th onclick="sortSpells('range')" data-en="Range" data-it="Gittata">Gittata</th>
-            <th onclick="sortSpells('components')" data-en="Comp" data-it="Comp">Comp</th>
-            <th onclick="sortSpells('duration')" data-en="Duration" data-it="Durata">Durata</th>
-            <th data-en="Tags" data-it="Tag">Tag</th>
-            <th onclick="sortSpells('classes')" data-en="Classes" data-it="Classi">Classi</th>
-          </tr></thead>
-          <tbody id="spellTableBody"></tbody>
-        </table>
-      </div>
+      <table class="spell-table">
+        <thead><tr>
+          <th onclick="sortSpells('name')" data-en="Name" data-it="Nome">Nome</th>
+          <th onclick="sortSpells('level')" data-en="Lvl" data-it="Liv">Liv</th>
+          <th onclick="sortSpells('school')" data-en="School" data-it="Scuola">Scuola</th>
+          <th onclick="sortSpells('castingTime')" data-en="Time" data-it="Tempo">Tempo</th>
+          <th onclick="sortSpells('range')" data-en="Range" data-it="Gittata">Gittata</th>
+          <th onclick="sortSpells('components')" data-en="Comp" data-it="Comp">Comp</th>
+          <th onclick="sortSpells('duration')" data-en="Duration" data-it="Durata">Durata</th>
+          <th data-en="Tags" data-it="Tag">Tag</th>
+          <th onclick="sortSpells('classes')" data-en="Classes" data-it="Classi">Classi</th>
+        </tr></thead>
+        <tbody id="spellTableBody"></tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -840,8 +839,8 @@ function renderUI() {
       tags.push('<span class="tag-school" style="background:'+schoolColor+'">' + schoolFull + '</span>');
       const classStr = (s.cl || []).map(c => className(c)).join(', ');
       const displayName = spellName(s.name);
-      return '<tr data-spell="' + s.name.replace(/"/g, '&quot;') + '" onclick="showSpellDetail(this.dataset.spell)" style="cursor:pointer;border-left:3px solid ' + schoolColor + '">' +
-        '<td style="font-weight:600">' + displayName + '</td>' +
+      return '<tr data-spell="' + s.name.replace(/"/g, '&quot;') + '" onclick="showSpellDetail(this.dataset.spell)" style="cursor:pointer">' +
+        '<td style="font-weight:600;border-left:3px solid ' + schoolColor + '">' + displayName + '</td>' +
         '<td>' + lvlBadge + '</td>' +
         '<td><span class="tag-school" style="background:'+schoolColor+'">' + schoolFull + '</span></td>' +
         '<td style="font-size:12px;color:var(--text2)">' + s.ct + '</td>' +
