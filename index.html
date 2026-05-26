@@ -91,15 +91,15 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 
 /* Spell Table */
 .spell-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; align-items: end; }
-.spell-controls .filter-group { display: flex; flex-direction: column; gap: 2px; }
-.spell-controls label { font-size: 10px; text-transform: uppercase; color: var(--text2); letter-spacing: 0.5px; }
+.spell-controls .filter-group { display: flex; flex-direction: row; gap: 12px; align-items: center; flex-wrap: wrap; }
+.spell-controls label { font-size: 10px; text-transform: uppercase; color: var(--text2); letter-spacing: 0.5px; margin: 0; }
 .spell-controls input, .spell-controls select { padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 13px; }
 .spell-controls input:focus, .spell-controls select:focus { outline: none; border-color: var(--accent); }
 .spell-controls .btn { height: 32px; }
 
 .spell-count { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
 .spell-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
-.spell-table th { text-align: left; padding: 10px 12px; background: var(--bg3); color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; position: sticky; top: 48px; z-index: 10; border-bottom: 2px solid var(--accent); }
+.spell-table th { text-align: left; padding: 10px 12px; background: var(--bg3); color: var(--accent2); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; position: sticky; top: 88px; z-index: 10; border-bottom: 2px solid var(--accent); }
 .spell-table th:hover { background: #134580; }
 .spell-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .spell-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
@@ -135,6 +135,10 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); co
 .spell-detail .meta-item .mv { font-size: 14px; color: var(--text); }
 .spell-detail .desc { font-size: 14px; line-height: 1.6; }
 .spell-detail .hl { margin-top: 12px; padding: 8px; background: var(--bg); border-radius: 4px; font-size: 13px; color: var(--accent2); }
+
+/* Description formatting: paragraphs, indentation and separators */
+.spell-detail .desc p { text-indent: 1.2em; margin: 0 0 12px 0; }
+.spell-detail .desc hr.desc-sep { border: none; height: 1px; background: var(--border); margin: 12px 0; }
 
 /* Spellbook */
 .spellbook-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 4px; }
